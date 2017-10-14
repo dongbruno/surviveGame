@@ -6,6 +6,31 @@ canvas.width = 600;
 canvas.height = 400;
 document.body.appendChild(canvas);
 
+// 添加背景声音
+var audio = document.createElement('audio');
+audio.src = 'mp3/MoonlightinHarbin.mp3';
+audio.autoplay = 'autoplay';
+document.body.appendChild(audio);
+
+// 停止播放背景声音
+var stopBDS = function() {
+	audio.pause();
+}
+// 播放成功声音
+var playSucceedS = function() {
+	var audioS = document.createElement('audio');
+	audioS.src = 'mp3/成功.mp3';
+	audioS.autoplay = 'autoplay';
+	document.body.appendChild(audioS);
+}
+// 播放失败声音
+var playFailS = function() {
+	var audioF = document.createElement('audio');
+	audioF.src = 'mp3/失败.mp3';
+	audioF.autoplay = 'autoplay';
+	document.body.appendChild(audioF);
+}
+
 // 背景图片
 var BGReady = false;
 var BGImage = new Image();
@@ -13,7 +38,19 @@ BGImage.src = "image/背景.png";
 BGImage.onload = function() {
 	BGReady = true;
 }
-
+// 雪花图片
+var snowReady = false;
+var snowAlready = false;
+var snowImage = new Image();
+snowImage.src = "image/雪花1.png";
+snowImage.onload = function() {
+	snowReady = true;
+}
+var snowImage2 = new Image();
+snowImage2.src = "image/雪花2.png";
+snowImage2.onload = function() {
+	snowReady2 = true;
+}
 // 德丽莎图片
 var DLSReady = false;
 var DLSImage = new Image();
@@ -36,7 +73,11 @@ var DLS = {
 	x : canvas.width / 2,
 	y : canvas.height / 2
 }
-
+// 雪花初始位置
+var snow = {
+	x : canvas.width / 2,
+	y : canvas.height / 2
+}
 function HM() {
 	this.x = Math.random() * canvas.width;// 取一个0-1之间的随机数与画布的长度相乘
 	this.y = Math.random() * canvas.height;// 取一个0-1之间的随机数与画布的宽度相乘
@@ -147,7 +188,37 @@ var Draw = function() {
 	last = Date.now() - start;
 	ctx.fillText(last / 1000, 30, canvas.height - 60);
 }
-
+var drawSnowFlower = function(){
+	// 画雪花
+	var timenow = Math.floor(Date.now()/500);
+	
+	if (snowReady) {
+		if(snowAlready)
+		{
+			if(timenow%2==0){
+              ctx.drawImage(snowImage, snow.x, snow.y, 25, 25);
+			}else{
+               ctx.drawImage(snowImage2, snow.x, snow.y, 25, 25);
+			}
+       
+		} else{
+        snow.x = DLS.x + 150;
+		snow.y = DLS.y + 100;
+		if(snow.x >= 572){
+			snow.x = snow.x - 572;
+		}
+		if(snow.y >= 372){
+			snow.y = snow.y - 372;
+		}
+		if(timenow%2==0){
+              ctx.drawImage(snowImage, snow.x, snow.y, 25, 25);
+			}else{
+               ctx.drawImage(snowImage2, snow.x, snow.y, 25, 25);
+			}
+		snowAlready = true;
+		}
+	}
+}
 var Check = function() {
 	// 大约3秒出一个吼姆
 	if (HMSum != Math.floor(last / 3000)) {
@@ -155,11 +226,23 @@ var Check = function() {
 		HMList[HMSum] = new HM();
 	}
 	end = Date.now();
+	//30秒后出现雪花图片
 	if (((end - start) / 1000) > 30) {
-		End();
-		setTimeout(function() {
-			alert("成功存活30秒，恭喜你进入下一关！");
-		}, 300);
+         drawSnowFlower(snowAlready);
+		// 根据两球心的距离与两者半径和比较判断是否相撞
+		var lineX2 = Math.floor(snow.x - DLS.x);
+		var lineY2 = Math.floor(snow.y - DLS.y);
+		if ((lineX2 * lineX2 + lineY2 * lineY2) < 25 * 25) {
+			end = Date.now();
+			End();
+			stopBDS();
+			playSucceedS();
+			setTimeout(function() {
+				alert("恭喜你进入下一关！");
+			}, 300);
+
+		}
+		
 	}
 	for (var i = 0; i <= HMSum; i++) {
 		// 根据两球心的距离与两者半径和比较判断是否相撞
@@ -168,6 +251,8 @@ var Check = function() {
 		if ((lineX * lineX + lineY * lineY) < 25 * 25) {
 			end = Date.now();
 			End();
+			playFailS();
+			stopBDS();
 			setTimeout(function() {
 				var r = confirm("你坚持了" + (end - start) / 1000 + "秒"
 						+ "，是否重新游戏?");
