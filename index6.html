@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    img{
+        width: 520px;
+    }
+    div.box{
+        width: 520px;
+        height: 280px;
+        overflow: hidden;
+        margin: 100px auto;
+        position: relative;
+    }
+    ul.img{
+        top: 0px;
+        left: 0px;
+        width: 1000%;
+        position: absolute;
+    }
+    ul.img li{
+        float: left;
+        list-style: none;
+    }
+    ul.circle{
+        left: 50%;
+        bottom: 10px;
+        margin-left: -75px;
+        position: absolute;
+    }
+    ul.circle li{
+        width: 20px;
+        height: 20px;
+        float: left;
+        color: #666;
+        cursor: pointer;
+        margin: 0px 5px;
+        list-style: none;
+        text-align: center;
+        border-radius: 10px;
+        background: #e4e4e4;
+        font: normal 12px/20px "conslas";
+    }
+
+    ul.arrow{
+        top: 50%;
+        width: 100%;
+        position: absolute;
+        margin-bottom: -25px;
+    }
+    ul.arrow li{
+        width: 35px;
+        height: 50px;
+        color: #666;
+        cursor: pointer;
+        list-style: none;
+        text-align: center;
+        background: #ccc;
+        font: 800 30px/50px "conslas";
+    }
+    ul.arrow li.left{
+        float:left;
+    }
+    ul.arrow li.right{
+        float: right;
+    }
+    ul.circle li.current{
+        color:#fff;
+        background: red;
+    }
+</style>
+</head>
+<body>
+    <div class="box">
+        <ul class="img">
+            <li><img src="img/p1.png" alt="" /></li>
+            <li><img src="img/p2.png" alt="" /></li>
+            <li><img src="img/p3.png" alt="" /></li>
+            <li><img src="img/p4.png" alt="" /></li>
+            <li><img src="img/p5.png" alt="" /></li>
+        </ul>
+        <ul class="circle">
+
+        </ul>
+        <ul class="arrow">
+            <li class="left"><</li>
+            <li class="right">></li>
+        </ul>
+    </div>
+
+    <script>
+            var box=document.getElementsByTagName("div")[0];//轮播图容器
+            var img=box.children[0];//图片容器
+            var circle=box.children[1];//小圆点容器
+            var arrow=box.children[2];//箭头容器
+            var left=arrow.children[0];//左箭头
+            var right=arrow.children[1];//右箭头
+            var index=0;//当前显示的图片的索引
+
+            //需求分析：
+            //1、在最后一幅图后面添加第一幅图
+            var addImg=img.children[0].cloneNode(true);
+            img.appendChild(addImg);
+
+            //2、动态添加小圆点，同时点亮第一个
+            var circles=img.children;//小圆点的个数即所有图片的个数集合
+            for(var i=1;i<circles.length;i++){
+                var circleLi=document.createElement("li");
+                circleLi.innerHTML=i;
+                circle.appendChild(circleLi);
+            }
+
+            var points=circle.children;
+            light();
+
+            function light(){
+                for(var i=0;i<points.length;i++){
+                    points[i].className="";
+                    if(index>4){
+                        points[0].className="current";
+                    }else{
+                        points[index].className="current";
+                    }
+                }
+            }
+            //3、点击小圆点，ul移动到相应的图片,同时点亮小圆点
+            for(var j=0;j<points.length;j++){
+                points[j].index=j;
+                points[j].onclick=function(){
+                    index=this.index;
+                    animate(img,-index*box.offsetWidth);
+                    light();
+                }
+            }
+
+            //4、左右箭头切换图片
+            right.onclick=autoplay;
+
+            function autoplay(){
+                index++;
+                if(index>circles.length-1){
+                    img.style.left=0;
+                    index=1;
+                }
+                animate(img,-index*box.offsetWidth);
+                light();
+            }
+            left.onclick=function(){
+               index--;
+               if(index<0){
+                img.style.left=-(circles.length-1)*box.offsetWidth+"px";
+                index=circles.length-2;
+            }
+            animate(img,-index*box.offsetWidth);
+            light();
+        }
+            //5、添加自动轮播功能
+            box.timer=setInterval(autoplay,2000);
+            box.onmouseover=function(){
+                clearInterval(box.timer);
+            }
+            box.onmouseout=function(){
+                clearInterval(box.timer);
+                box.timer=setInterval(autoplay,2000);
+            }
+
+
+            function animate(obj,target){
+                clearInterval(obj.timer);
+                obj.timer=setInterval(function(){
+                    var speed=(obj.offsetLeft>target?-20:20);
+                    if(Math.abs(obj.offsetLeft-target)>20){
+                        obj.style.left=obj.offsetLeft+speed+"px";
+                    }else{
+                        obj.style.left=target+"px";
+                    }
+                },20)
+            }
+        </script>
+    </body>
+    </html>
